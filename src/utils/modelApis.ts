@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import Anthropic from "@anthropic-ai/sdk";
 
 interface ModelResponse {
   content: string;
@@ -46,31 +47,30 @@ const callClaude = async (message: string): Promise<ModelResponse> => {
   const startTime = Date.now();
   const apiKey = await getApiKey('ANTHROPIC');
   
-  const response = await fetch('https://api.anthropic.com/v1/messages', {
-    method: 'POST',
-    headers: {
-      'x-api-key': apiKey,
-      'anthropic-version': '2023-06-01',
-      'content-type': 'application/json',
-    },
-    body: JSON.stringify({
-      model: 'claude-3-haiku-20241022',
-      max_tokens: 1024,
-      messages: [{ role: 'user', content: message }]
-    })
+  const anthropic = new Anthropic({
+    apiKey: apiKey
   });
 
-  if (!response.ok) {
-    const errorData = await response.json();
-    console.error('Claude API Error:', errorData);
-    throw new Error(`Failed to get response from Claude: ${errorData.error?.message || 'Unknown error'}`);
-  }
+  try {
+    const response = await anthropic.messages.create({
+      model: "claude-3-haiku-20241022",
+      max_tokens: 1024,
+      messages: [
+        {
+          role: "user",
+          content: message
+        }
+      ]
+    });
 
-  const data = await response.json();
-  return {
-    content: data.content[0].text,
-    responseTime: Date.now() - startTime
-  };
+    return {
+      content: response.content[0].text,
+      responseTime: Date.now() - startTime
+    };
+  } catch (error) {
+    console.error('Claude API Error:', error);
+    throw new Error(`Failed to get response from Claude: ${error.message || 'Unknown error'}`);
+  }
 };
 
 const callOpenAI = async (message: string): Promise<ModelResponse> => {
