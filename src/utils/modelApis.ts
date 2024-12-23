@@ -6,6 +6,11 @@ interface ModelResponse {
   responseTime: number;
 }
 
+interface Message {
+  role: "user" | "assistant";
+  content: string;
+}
+
 const getApiKey = async (provider: string) => {
   const { data: { value }, error } = await supabase.functions.invoke('get-api-key', {
     body: { provider },
@@ -15,7 +20,7 @@ const getApiKey = async (provider: string) => {
   return value;
 };
 
-const callGroq = async (message: string): Promise<ModelResponse> => {
+const callGroq = async (message: string, previousMessages: Message[] = []): Promise<ModelResponse> => {
   const startTime = Date.now();
   const apiKey = await getApiKey('GROQ');
   
@@ -27,7 +32,10 @@ const callGroq = async (message: string): Promise<ModelResponse> => {
     },
     body: JSON.stringify({
       model: 'mixtral-8x7b-32768',
-      messages: [{ role: 'user', content: message }],
+      messages: [
+        ...previousMessages,
+        { role: 'user', content: message }
+      ],
       temperature: 0.5,
     })
   });
@@ -43,7 +51,7 @@ const callGroq = async (message: string): Promise<ModelResponse> => {
   };
 };
 
-const callClaude = async (message: string): Promise<ModelResponse> => {
+const callClaude = async (message: string, previousMessages: Message[] = []): Promise<ModelResponse> => {
   const startTime = Date.now();
   const apiKey = await getApiKey('ANTHROPIC');
   
@@ -54,9 +62,10 @@ const callClaude = async (message: string): Promise<ModelResponse> => {
 
   try {
     const response = await anthropic.messages.create({
-      model: "claude-3-haiku-20240307",  // Updated to the correct model name
+      model: "claude-3-haiku-20240307",
       max_tokens: 1024,
       messages: [
+        ...previousMessages,
         {
           role: "user",
           content: message
@@ -64,7 +73,6 @@ const callClaude = async (message: string): Promise<ModelResponse> => {
       ]
     });
 
-    // Check if the response has content and it's of type 'text'
     const textContent = response.content.find(block => block.type === 'text');
     if (!textContent || typeof textContent.text !== 'string') {
       throw new Error('Unexpected response format from Claude API');
@@ -80,7 +88,7 @@ const callClaude = async (message: string): Promise<ModelResponse> => {
   }
 };
 
-const callOpenAI = async (message: string): Promise<ModelResponse> => {
+const callOpenAI = async (message: string, previousMessages: Message[] = []): Promise<ModelResponse> => {
   const startTime = Date.now();
   const apiKey = await getApiKey('OPENAI');
   
@@ -92,7 +100,10 @@ const callOpenAI = async (message: string): Promise<ModelResponse> => {
     },
     body: JSON.stringify({
       model: 'gpt-3.5-turbo',
-      messages: [{ role: 'user', content: message }],
+      messages: [
+        ...previousMessages,
+        { role: 'user', content: message }
+      ],
       temperature: 0.7,
     })
   });
@@ -108,14 +119,18 @@ const callOpenAI = async (message: string): Promise<ModelResponse> => {
   };
 };
 
-export const getModelResponse = async (model: string, message: string): Promise<ModelResponse> => {
+export const getModelResponse = async (
+  model: string, 
+  message: string, 
+  previousMessages: Message[] = []
+): Promise<ModelResponse> => {
   switch (model) {
     case 'groq':
-      return callGroq(message);
+      return callGroq(message, previousMessages);
     case 'claude-haiku':
-      return callClaude(message);
+      return callClaude(message, previousMessages);
     case 'gpt-3.5':
-      return callOpenAI(message);
+      return callOpenAI(message, previousMessages);
     default:
       throw new Error('Unsupported model');
   }

@@ -4,7 +4,7 @@ import { SpeedMetrics } from "@/components/SpeedMetrics";
 import { ChatMessage } from "@/components/ChatMessage";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Send } from "lucide-react";
+import { Send, Trash2 } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { getModelResponse } from "@/utils/modelApis";
 
@@ -31,6 +31,14 @@ const Index = () => {
     scrollToBottom();
   }, [messages]);
 
+  const clearContext = () => {
+    setMessages([]);
+    toast({
+      title: "Context Cleared",
+      description: "Started a new conversation",
+    });
+  };
+
   const handleSend = async () => {
     if (!input.trim() || !selectedModel) {
       toast({
@@ -52,7 +60,11 @@ const Index = () => {
     setIsLoading(true);
 
     try {
-      const { content, responseTime } = await getModelResponse(selectedModel.id, input);
+      const { content, responseTime } = await getModelResponse(
+        selectedModel.id, 
+        input,
+        messages.map(m => ({ role: m.isUser ? "user" : "assistant", content: m.content }))
+      );
       
       const botMessage: Message = {
         content,
@@ -80,9 +92,20 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-[#111111] flex flex-col p-4 sm:p-6">
       <header className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-6">
-        <h1 className="text-3xl font-bold text-white">
-          run<span className="text-racing-blue">fa.st</span>
-        </h1>
+        <div className="flex items-center gap-4">
+          <h1 className="text-3xl font-bold text-white">
+            run<span className="text-racing-blue">fa.st</span>
+          </h1>
+          <Button
+            onClick={clearContext}
+            variant="outline"
+            className="gap-2 text-white hover:text-racing-blue"
+            size="sm"
+          >
+            <Trash2 className="w-4 h-4" />
+            Clear Chat
+          </Button>
+        </div>
         <div className="flex flex-col sm:flex-row items-center gap-4">
           <ModelSelector
             selectedModel={selectedModel}
