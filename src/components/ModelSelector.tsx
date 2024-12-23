@@ -1,13 +1,7 @@
 import React from "react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Zap } from "lucide-react";
-
-export interface Model {
-  id: string;
-  name: string;
-  speed: number; // Speed rating out of 100
-  provider: string;
-}
+import type { Model } from "@/types/chat";
 
 const models: Model[] = [
   { id: "gpt-3.5", name: "GPT-3.5 Turbo", speed: 90, provider: "OpenAI" },
