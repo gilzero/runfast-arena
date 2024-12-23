@@ -20,7 +20,6 @@ const Index = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [apiKey, setApiKey] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
 
@@ -42,15 +41,6 @@ const Index = () => {
       return;
     }
 
-    if (!apiKey) {
-      toast({
-        title: "Error",
-        description: "Please enter your API key",
-        variant: "destructive",
-      });
-      return;
-    }
-
     const userMessage: Message = {
       content: input,
       isUser: true,
@@ -62,7 +52,7 @@ const Index = () => {
     setIsLoading(true);
 
     try {
-      const { content, responseTime } = await getModelResponse(selectedModel.id, input, apiKey);
+      const { content, responseTime } = await getModelResponse(selectedModel.id, input);
       
       const botMessage: Message = {
         content,
@@ -94,13 +84,6 @@ const Index = () => {
           run<span className="text-racing-blue">fa.st</span>
         </h1>
         <div className="flex flex-col sm:flex-row items-center gap-4">
-          <Input
-            type="password"
-            value={apiKey}
-            onChange={(e) => setApiKey(e.target.value)}
-            placeholder="Enter API key"
-            className="bg-black/50 border-racing-blue text-white max-w-xs"
-          />
           <ModelSelector
             selectedModel={selectedModel}
             onModelSelect={setSelectedModel}

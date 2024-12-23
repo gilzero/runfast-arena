@@ -1,10 +1,23 @@
+import { supabase } from "@/integrations/supabase/client";
+
 interface ModelResponse {
   content: string;
   responseTime: number;
 }
 
-const callGroq = async (message: string, apiKey: string): Promise<ModelResponse> => {
+const getApiKey = async (provider: string) => {
+  const { data: { value }, error } = await supabase.functions.invoke('get-api-key', {
+    body: { provider },
+  });
+  
+  if (error) throw new Error(`Failed to get API key for ${provider}`);
+  return value;
+};
+
+const callGroq = async (message: string): Promise<ModelResponse> => {
   const startTime = Date.now();
+  const apiKey = await getApiKey('GROQ');
+  
   const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
     method: 'POST',
     headers: {
@@ -29,8 +42,10 @@ const callGroq = async (message: string, apiKey: string): Promise<ModelResponse>
   };
 };
 
-const callClaude = async (message: string, apiKey: string): Promise<ModelResponse> => {
+const callClaude = async (message: string): Promise<ModelResponse> => {
   const startTime = Date.now();
+  const apiKey = await getApiKey('ANTHROPIC');
+  
   const response = await fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',
     headers: {
@@ -56,8 +71,10 @@ const callClaude = async (message: string, apiKey: string): Promise<ModelRespons
   };
 };
 
-const callOpenAI = async (message: string, apiKey: string): Promise<ModelResponse> => {
+const callOpenAI = async (message: string): Promise<ModelResponse> => {
   const startTime = Date.now();
+  const apiKey = await getApiKey('OPENAI');
+  
   const response = await fetch('https://api.openai.com/v1/chat/completions', {
     method: 'POST',
     headers: {
@@ -82,14 +99,14 @@ const callOpenAI = async (message: string, apiKey: string): Promise<ModelRespons
   };
 };
 
-export const getModelResponse = async (model: string, message: string, apiKey: string): Promise<ModelResponse> => {
+export const getModelResponse = async (model: string, message: string): Promise<ModelResponse> => {
   switch (model) {
     case 'groq':
-      return callGroq(message, apiKey);
+      return callGroq(message);
     case 'claude-haiku':
-      return callClaude(message, apiKey);
+      return callClaude(message);
     case 'gpt-3.5':
-      return callOpenAI(message, apiKey);
+      return callOpenAI(message);
     default:
       throw new Error('Unsupported model');
   }
