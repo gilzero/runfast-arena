@@ -13,6 +13,7 @@ interface Message {
   isUser: boolean;
   timestamp: Date;
   responseTime?: number;
+  model?: string; // Add model information to track which model was used
 }
 
 const Index = () => {
@@ -53,6 +54,7 @@ const Index = () => {
       content: input,
       isUser: true,
       timestamp: new Date(),
+      model: selectedModel.id,
     };
 
     setMessages((prev) => [...prev, userMessage]);
@@ -60,17 +62,26 @@ const Index = () => {
     setIsLoading(true);
 
     try {
+      // Only include previous messages from the current model
+      const relevantMessages = messages
+        .filter(m => !m.model || m.model === selectedModel.id)
+        .map(m => ({ 
+          role: m.isUser ? "user" : "assistant" as const, 
+          content: m.content 
+        }));
+
       const { content, responseTime } = await getModelResponse(
-        selectedModel.id, 
+        selectedModel.id,
         input,
-        messages.map(m => ({ role: m.isUser ? "user" : "assistant", content: m.content }))
+        relevantMessages
       );
-      
+
       const botMessage: Message = {
         content,
         isUser: false,
         timestamp: new Date(),
         responseTime,
+        model: selectedModel.id,
       };
 
       setMessages((prev) => [...prev, botMessage]);
