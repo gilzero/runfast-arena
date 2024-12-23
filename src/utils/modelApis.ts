@@ -54,7 +54,7 @@ const callClaude = async (message: string): Promise<ModelResponse> => {
 
   try {
     const response = await anthropic.messages.create({
-      model: "claude-3-haiku-20241022",
+      model: "claude-3-haiku",  // Updated to correct model name
       max_tokens: 1024,
       messages: [
         {
