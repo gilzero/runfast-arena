@@ -61,6 +61,8 @@ const callClaude = async (message: string): Promise<ModelResponse> => {
   });
 
   if (!response.ok) {
+    const errorData = await response.json();
+    console.error('Claude API Error:', errorData);
     throw new Error('Failed to get response from Claude');
   }
 
