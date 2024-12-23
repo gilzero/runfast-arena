@@ -13,7 +13,7 @@ interface ChatMessage {
   isUser: boolean;
   timestamp: Date;
   responseTime?: number;
-  model?: string; // Add model information to track which model was used
+  model?: string;
 }
 
 const Index = () => {
@@ -109,7 +109,7 @@ const Index = () => {
           <Button
             onClick={clearContext}
             variant="outline"
-            className="gap-2 text-white hover:text-racing-blue"
+            className="border-racing-blue text-racing-blue hover:bg-racing-blue hover:text-white transition-colors"
             size="sm"
           >
             <Trash2 className="w-4 h-4" />
