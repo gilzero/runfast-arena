@@ -6,9 +6,9 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Send, Trash2 } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
-import { getModelResponse } from "@/utils/modelApis";
+import { getModelResponse, type Message as ApiMessage } from "@/utils/modelApis";
 
-interface Message {
+interface ChatMessage {
   content: string;
   isUser: boolean;
   timestamp: Date;
@@ -18,7 +18,7 @@ interface Message {
 
 const Index = () => {
   const [selectedModel, setSelectedModel] = useState<Model | null>(null);
-  const [messages, setMessages] = useState<Message[]>([]);
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -50,7 +50,7 @@ const Index = () => {
       return;
     }
 
-    const userMessage: Message = {
+    const userMessage: ChatMessage = {
       content: input,
       isUser: true,
       timestamp: new Date(),
@@ -62,12 +62,11 @@ const Index = () => {
     setIsLoading(true);
 
     try {
-      // Only include previous messages from the current model
       const relevantMessages = messages
         .filter(m => !m.model || m.model === selectedModel.id)
-        .map(m => ({ 
-          role: m.isUser ? "user" : "assistant" as const, 
-          content: m.content 
+        .map(m => ({
+          role: m.isUser ? "user" as const : "assistant" as const,
+          content: m.content
         }));
 
       const { content, responseTime } = await getModelResponse(
@@ -76,7 +75,7 @@ const Index = () => {
         relevantMessages
       );
 
-      const botMessage: Message = {
+      const botMessage: ChatMessage = {
         content,
         isUser: false,
         timestamp: new Date(),

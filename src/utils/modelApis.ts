@@ -1,12 +1,12 @@
 import { supabase } from "@/integrations/supabase/client";
 import Anthropic from "@anthropic-ai/sdk";
 
-interface ModelResponse {
+export interface ModelResponse {
   content: string;
   responseTime: number;
 }
 
-interface Message {
+export interface Message {
   role: "user" | "assistant";
   content: string;
 }
