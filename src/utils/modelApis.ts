@@ -48,7 +48,8 @@ const callClaude = async (message: string): Promise<ModelResponse> => {
   const apiKey = await getApiKey('ANTHROPIC');
   
   const anthropic = new Anthropic({
-    apiKey: apiKey
+    apiKey: apiKey,
+    dangerouslyAllowBrowser: true // Enable browser usage since we're handling API keys securely
   });
 
   try {
