@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Send } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
+import { getModelResponse } from "@/utils/modelApis";
 
 interface Message {
   content: string;
@@ -14,27 +15,12 @@ interface Message {
   responseTime?: number;
 }
 
-const simulateModelResponse = async (model: Model, message: string) => {
-  const startTime = Date.now();
-  
-  // Simulate different response times based on model speed
-  const baseDelay = 1000; // 1 second base delay
-  const speedFactor = (100 - model.speed) / 100; // Convert speed rating to delay factor
-  const delay = baseDelay * speedFactor;
-  
-  await new Promise((resolve) => setTimeout(resolve, delay));
-  
-  return {
-    content: `Response from ${model.name}: I received your message "${message}" and processed it at ${model.speed}% speed.`,
-    responseTime: Date.now() - startTime
-  };
-};
-
 const Index = () => {
   const [selectedModel, setSelectedModel] = useState<Model | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [apiKey, setApiKey] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
 
@@ -56,6 +42,15 @@ const Index = () => {
       return;
     }
 
+    if (!apiKey) {
+      toast({
+        title: "Error",
+        description: "Please enter your API key",
+        variant: "destructive",
+      });
+      return;
+    }
+
     const userMessage: Message = {
       content: input,
       isUser: true,
@@ -67,7 +62,7 @@ const Index = () => {
     setIsLoading(true);
 
     try {
-      const { content, responseTime } = await simulateModelResponse(selectedModel, input);
+      const { content, responseTime } = await getModelResponse(selectedModel.id, input, apiKey);
       
       const botMessage: Message = {
         content,
@@ -80,7 +75,7 @@ const Index = () => {
     } catch (error) {
       toast({
         title: "Error",
-        description: "Failed to get response from the model",
+        description: error instanceof Error ? error.message : "Failed to get response from the model",
         variant: "destructive",
       });
     } finally {
@@ -99,6 +94,13 @@ const Index = () => {
           run<span className="text-racing-blue">fa.st</span>
         </h1>
         <div className="flex flex-col sm:flex-row items-center gap-4">
+          <Input
+            type="password"
+            value={apiKey}
+            onChange={(e) => setApiKey(e.target.value)}
+            placeholder="Enter API key"
+            className="bg-black/50 border-racing-blue text-white max-w-xs"
+          />
           <ModelSelector
             selectedModel={selectedModel}
             onModelSelect={setSelectedModel}
