@@ -49,12 +49,12 @@ const callClaude = async (message: string): Promise<ModelResponse> => {
   
   const anthropic = new Anthropic({
     apiKey: apiKey,
-    dangerouslyAllowBrowser: true // Enable browser usage since we're handling API keys securely
+    dangerouslyAllowBrowser: true
   });
 
   try {
     const response = await anthropic.messages.create({
-      model: "claude-3-haiku",  // Updated to correct model name
+      model: "claude-3-haiku-20240307",  // Updated to the correct model name
       max_tokens: 1024,
       messages: [
         {
