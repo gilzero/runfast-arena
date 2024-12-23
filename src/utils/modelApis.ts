@@ -63,8 +63,14 @@ const callClaude = async (message: string): Promise<ModelResponse> => {
       ]
     });
 
+    // Check if the response has content and it's of type 'text'
+    const textContent = response.content.find(block => block.type === 'text');
+    if (!textContent || typeof textContent.text !== 'string') {
+      throw new Error('Unexpected response format from Claude API');
+    }
+
     return {
-      content: response.content[0].text,
+      content: textContent.text,
       responseTime: Date.now() - startTime
     };
   } catch (error) {
